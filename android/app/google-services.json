@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "288230763332",
+    "firebase_url": "https://facerecognition-d150a-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "facerecognition-d150a",
+    "storage_bucket": "facerecognition-d150a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288230763332:android:82188600b5de10a5a40511",
+        "android_client_info": {
+          "package_name": "com.example.face_logic"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "288230763332-vp0aivf8okl6583tlkh0eorj5ob4i7ob.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLLq8uEJfafRyalGfmNyZAEvy-B0NCXrc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "288230763332-vp0aivf8okl6583tlkh0eorj5ob4i7ob.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
