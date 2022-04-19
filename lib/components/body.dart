@@ -13,6 +13,7 @@ final FirebaseAuth auth = FirebaseAuth.instance;
 final User? user = auth.currentUser;
 final uid = user?.uid;
 FirebaseDatabase database = FirebaseDatabase.instance;
+DatabaseReference reference = FirebaseDatabase.instance.ref("Users").child('PiLOoilOQYawB54EsABaOdbu3D93').child('Name');
 
 class Body extends StatelessWidget {
   @override
@@ -259,13 +260,10 @@ class _HeaderState extends State<Header> {
         ),
         color: Colors.greenAccent,
         onPressed: () async {
-          final snapshot = await reference.child(uid.toString()).get();
-
-          if (snapshot.exists) {
-            print(snapshot.value);
-          } else {
-            print('No data available.');
-          }
+          reference.onValue.listen((DatabaseEvent event) {
+            final data = event.snapshot.value;
+            print('amey' + data.toString());
+          });
         });
   }
 }
