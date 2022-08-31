@@ -55,7 +55,14 @@ dependencies:
   video_player: ^2.3.0
   image_picker: ^0.8.5
   permission_handler: ^8.3.0
-
+  http: ^0.13.4
+  geolocator: ^8.2.0
+  geocoding: ^2.0.4
+  sms_autofill: ^2.2.0
+  snippet_coder_utils: ^1.0.12
+  flutter_progress_hud: ^2.0.2
+ 
+ 
 dev_dependencies:
   flutter_test:
     sdk: flutter

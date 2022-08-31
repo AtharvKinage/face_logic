@@ -1,290 +1,144 @@
-import 'dart:developer';
-import 'package:face_logic/components/body.dart';
-import 'package:face_logic/screens/logout.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'dart:ui';
+
+import 'package:face_logic/main.dart';
+import 'package:face_logic/screens/otp_verify_screen.dart';
+import 'package:face_logic/screens/registration_screen.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:snippet_coder_utils/FormHelper.dart';
+import 'package:snippet_coder_utils/ProgressHUD.dart';
 
-import '../utils/config.dart';
-import 'home_screen.dart';
+class LoginOTPPage extends StatefulWidget {
+  const LoginOTPPage({Key? key}) : super(key: key);
 
-class LoginScreen extends StatefulWidget {
-  LoginScreen({Key? key}) : super(key: key);
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginOTPPage> createState() => _LoginOTPPageState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  bool _obscureText = true;
-  final _formKey = GlobalKey<FormState>();
-  final _emailTextController = TextEditingController();
-  final _passwordTextController = TextEditingController();
-  final _focusEmail = FocusNode();
-  final _focusPassword = FocusNode();
-  bool _isProcessing = false;
-  late String _email, _password;
-  final auth = FirebaseAuth.instance;
-
+class _LoginOTPPageState extends State<LoginOTPPage> {
+  String mobileNo = '';
+  bool isAPICallProcess = false;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        physics: NeverScrollableScrollPhysics(),
-        child: Stack(
-          children: [
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 110, horizontal: 30),
-              color: Colors.white,
-              width: double.infinity,
-              child: Column(
-                children: [
-                  Padding(padding: EdgeInsets.only()),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Text(
-                        "FaceLogic",
-                        style: GoogleFonts.poppins(
-                          fontSize: 40,
-                          color: Color(0xff205072),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      )
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.blockSizeVertical * 5),
-                  Padding(padding: EdgeInsets.only(top: 50)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Text(
-                        "Enter your login details to ",
-                        style: GoogleFonts.poppins(
-                            fontSize: 25,
-                            color: Colors.greenAccent,
-                            fontWeight: FontWeight.w500),
-                      )
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.blockSizeVertical * 0.5),
-                  Padding(padding: EdgeInsets.only()),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Text(
-                        "access your account ",
-                        style: GoogleFonts.poppins(
-                          fontSize: 25,
-                          color: Colors.greenAccent,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                    height: SizeConfig.blockSizeVertical * 10,
-                  ),
-                  _inputField1(),
-                  SizedBox(height: SizeConfig.blockSizeVertical * 3),
-                  _inputField2(),
-                  SizedBox(height: SizeConfig.blockSizeVertical * 3),
-                  _loginbtn(context),
-                  SizedBox(height: SizeConfig.blockSizeVertical * 10),
-                  _passCode()
-                ],
-              ),
-            )
-          ],
+    return SafeArea(
+      child: Scaffold(
+        body: ProgressHUD(
+          child: loginUI(),
+          inAsyncCall: isAPICallProcess,
+          opacity: 0.3,
+          key: UniqueKey(),
         ),
       ),
     );
   }
 
-  Widget _inputField1() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(
-          Radius.circular(100),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black,
-            blurRadius: 25,
-            offset: Offset(0, 5),
-            spreadRadius: -25,
-          ),
-        ],
-      ),
-      margin: EdgeInsets.only(bottom: 20, top: 60),
-      child: TextField(
-        controller: _emailTextController,
-        style: GoogleFonts.poppins(
-            fontSize: 19,
-            color: Colors.black,
-            letterSpacing: 0.24,
-            fontWeight: FontWeight.w500),
-        decoration: InputDecoration(
-          hintText: "Email address",
-          hintStyle: TextStyle(
-            color: Color(0xffA6B0BD),
-          ),
-          fillColor: Colors.white,
-          filled: true,
-          suffixIcon: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: FaIcon(
-              FontAwesomeIcons.checkCircle,
-              color: Colors.greenAccent,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(1),
-            ),
-            borderSide: BorderSide(color: Colors.white),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(1),
-            ),
-            borderSide: BorderSide(color: Colors.white),
-          ),
-        ),
-        onChanged: (value) {
-          setState(() {
-            _email = value.trim();
-          });
-        },
-      ),
-    );
-  }
-
-  Widget _inputField2() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(
-          Radius.circular(50),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black,
-            blurRadius: 25,
-            offset: Offset(0, 5),
-            spreadRadius: -25,
-          ),
-        ],
-      ),
-      margin: EdgeInsets.only(bottom: 60),
-      child: TextField(
-        controller: _passwordTextController,
-        style: GoogleFonts.poppins(
-            fontSize: 19,
-            color: Colors.black,
-            letterSpacing: 0.24,
-            fontWeight: FontWeight.w500),
-        decoration: InputDecoration(
-          hintText: "Password",
-          hintStyle: TextStyle(
-            color: Color(0xffA6B0BD),
-          ),
-          fillColor: Colors.white,
-          filled: true,
-          suffixIcon: GestureDetector(
-            onTap: () {
-              setState(() {
-                _obscureText = !_obscureText;
-              });
-            },
-            child: FaIcon(
-              _obscureText ? FontAwesomeIcons.eyeSlash : FontAwesomeIcons.eye,
-              color: Color(0xffCDE0C9).withOpacity(0.9),
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(1),
-            ),
-            borderSide: BorderSide(color: Colors.white),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(1),
-            ),
-            borderSide: BorderSide(color: Colors.white),
-          ),
-        ),
-        onChanged: (value) {
-          setState(() {
-            _password = value.trim();
-          });
-        },
-        obscureText: _obscureText,
-      ),
-    );
-  }
-
-  Widget _loginbtn(context) {
-    // ignore: deprecated_member_use
-    return FlatButton(
-        padding: EdgeInsets.symmetric(vertical: 18, horizontal: 120),
-        shape: new RoundedRectangleBorder(
-          borderRadius: new BorderRadius.circular(20.0),
-        ),
-        child: Text(
-          "LOG IN",
-          style: GoogleFonts.montserrat(
-              fontSize: 23,
-              color: Colors.white,
-              letterSpacing: 0.168,
-              fontWeight: FontWeight.w600),
-        ),
-        color: Colors.greenAccent,
-        onPressed: () {
-          try {
-            auth
-                .signInWithEmailAndPassword(email: _email, password: _password)
-                .then((_) {
-              Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => HomeScreen()));
-            });
-          } catch (error) {
-            Fluttertoast.showToast(
-                msg: "This is Center Short Toast",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.CENTER,
-                timeInSecForIosWeb: 1,
-                backgroundColor: Colors.red,
-                textColor: Colors.white,
-                fontSize: 16.0);
-          }
-        });
-  }
-
-  Widget _passCode() {
-    return Row(
+  loginUI() {
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Padding(padding: EdgeInsets.only(top: 20.0)),
-        Text(
-          "",
-          style: GoogleFonts.poppins(fontSize: 20, color: Colors.greenAccent),
-        ),
-        InkWell(
-          child: Text(
-            "",
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+        Image.network("https://i.imgur.com/bOCEVJg.png",
+            height: 180, fit: BoxFit.contain),
+        Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Center(
+            child: Text(
+              "Login with a Mobile number",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),
-          onTap: () {},
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        Center(
+          child: Text(
+            "Enter your mobile number we will send you OTP to verify",
+            style: TextStyle(fontSize: 14),
+          ),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                  child: Container(
+                height: 47,
+                width: 50,
+                margin: const EdgeInsets.fromLTRB(0, 10, 3, 30),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.grey)),
+                child: const Center(
+                  child: Text(
+                    "+91",
+                    style: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              )),
+              Flexible(
+                flex: 5,
+                child: TextFormField(
+                  maxLines: 1,
+                  maxLength: 10,
+                  decoration: const InputDecoration(
+                    contentPadding: EdgeInsets.all(6),
+                    hintText: "Mobile Number",
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey, width: 1),
+                    ),
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                      color: Colors.grey,
+                      width: 1,
+                    )),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                      color: Colors.grey,
+                      width: 1,
+                    )),
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (String value) {
+                    if (value.length > 9) {
+                      mobileNo = value;
+                    }
+                  },
+                ),
+              )
+            ],
+          ),
+        ),
+        Center(
+          child: FormHelper.submitButton("Continue", () {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => OtpVerifyPage()));
+          },
+              borderColor: HexColor("#78D0B1"),
+              btnColor: HexColor("#78D0B1"),
+              txtColor: HexColor("#000000"),
+              borderRadius: 20),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: InkWell(
+            onTap: () {
+              Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => RegistrationPage()));
+            },
+            child: new Text(
+              "Not Registered? Signup",
+              style: TextStyle(fontSize: 14),
+            ),
+          ),
         )
       ],
     );

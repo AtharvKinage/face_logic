@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       home: FirebaseAuth.instance.currentUser == null
-          ? LoginScreen()
+          ? LoginOTPPage()
           : HomeScreen(),
       //make flutter aware of app routes using router generator in router.dart file
       //onGenerateRoute: generateRoute,
@@ -64,3 +64,15 @@ class MyApp extends StatelessWidget {
 //     );
 //   }
 // }
+
+class HexColor extends Color {
+  HexColor(final String hexColor) : super(_getColorFromHex(hexColor));
+
+  static int _getColorFromHex(String hexColor) {
+    hexColor = hexColor.toUpperCase().replaceAll('#', '');
+    if (hexColor.length == 6) {
+      hexColor = 'FF' + hexColor;
+    }
+    return int.parse(hexColor, radix: 16);
+  }
+}

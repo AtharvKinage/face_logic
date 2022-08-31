@@ -6,7 +6,7 @@ import 'login_screen.dart';
 
 class Logout extends StatelessWidget {
   late final User user;
-  final auth = FirebaseAuth.instance;
+  // final auth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -14,9 +14,9 @@ class Logout extends StatelessWidget {
         child: FlatButton(
           child: Text('Logout'),
           onPressed: () {
-            auth.signOut();
+            // auth.signOut();
             Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => LoginScreen()));
+                MaterialPageRoute(builder: (context) => LoginOTPPage()));
           },
         ),
       ),

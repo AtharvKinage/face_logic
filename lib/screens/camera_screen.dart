@@ -1,16 +1,24 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:face_logic/components/body.dart';
+import 'package:face_logic/screens/home_screen.dart';
 import 'package:face_logic/screens/preview_screen.dart';
+import 'package:face_logic/utils/api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
 import '../main.dart';
+import 'package:http/http.dart' as http;
 
 class CameraScreen extends StatefulWidget {
   @override
@@ -19,6 +27,10 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen>
     with WidgetsBindingObserver {
+  late String img64;
+  String location = 'Null';
+  String Address = 'Null';
+
   CameraController? controller;
   VideoPlayerController? videoController;
 
@@ -47,6 +59,40 @@ class _CameraScreenState extends State<CameraScreen>
 
   ResolutionPreset currentResolutionPreset = ResolutionPreset.high;
 
+  Future<Position> _getGeoLocationPosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled don't continue
+      // accessing the position and request users of the
+      // App to enable the location services.
+      await Geolocator.openLocationSettings();
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately.
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    // When we reach here, permissions are granted and we can
+    // continue accessing the position of the device.
+    return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+  }
+
   getPermissionStatus() async {
     await Permission.camera.request();
     var status = await Permission.camera.status;
@@ -57,11 +103,21 @@ class _CameraScreenState extends State<CameraScreen>
         _isCameraPermissionGranted = true;
       });
       // Set and initialize the new camera
-      onNewCameraSelected(cameras[0]);
+      onNewCameraSelected(cameras[1]);
       refreshAlreadyCapturedImages();
     } else {
       log('Camera Permission: DENIED');
     }
+  }
+
+  Future<void> GetAddressFromLatLong(Position position) async {
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+    print(placemarks);
+    Placemark place = placemarks[0];
+    Address =
+        '${place.street}, ${place.subLocality}, ${place.locality}, ${place.postalCode}, ${place.country}';
+    setState(() {});
   }
 
   refreshAlreadyCapturedImages() async {
@@ -260,12 +316,117 @@ class _CameraScreenState extends State<CameraScreen>
     controller!.setFocusPoint(offset);
   }
 
+  _postimage() async {
+    var data = {"img": img64, "device": "106", "lat": "1234", "long": "1234"};
+
+    var res = await CallApi().postData(data, 'data');
+    int code = res.statusCode;
+    var body = jsonDecode(res.body);
+    print(body);
+    if (body.toString() == 1) {
+      print("Image sent sucessfully");
+    } else {
+      print("Error while sending post request");
+    }
+  }
+
   @override
   void initState() {
     // Hide the status bar in Android
     SystemChrome.setEnabledSystemUIOverlays([]);
     getPermissionStatus();
+
     super.initState();
+    Future.delayed(Duration(seconds: 2), () async {
+      XFile? rawImage = await takePicture();
+      File imageFile = File(rawImage!.path);
+
+      int currentUnix = DateTime.now().millisecondsSinceEpoch;
+
+      final directory = await getApplicationDocumentsDirectory();
+
+      String fileFormat = imageFile.path.split('.').last;
+
+      print(fileFormat);
+
+      await imageFile.copy(
+        '${directory.path}/$currentUnix.$fileFormat',
+      );
+
+      img64 = base64Encode(imageFile.readAsBytesSync());
+
+      Position position = await _getGeoLocationPosition();
+      location = 'Lat: ${position.latitude} , Long: ${position.longitude}';
+      GetAddressFromLatLong(position);
+      log("position" + position.toString());
+      log("location" + location);
+      var map = new Map<String, dynamic>();
+      map['img'] = img64;
+      map['device'] = uid.toString();
+      map['lat'] = position.latitude.toString();
+      map['long'] = position.longitude.toString();
+
+      final response = await http.post(
+        Uri.parse('http://172.105.41.185:5000/data'),
+        body: map,
+      );
+      print(response.body);
+      if (response.body == "1") {
+        print("Image sent successfully");
+        var deviceId = new Map<String, dynamic>();
+        deviceId['device'] = uid.toString();
+        final mainres = await http.post(
+          Uri.parse('http://172.105.41.185:5000/'),
+          body: deviceId,
+        );
+        print(mainres.body);
+        if (mainres.body == '{"err": "No data found for give device"}') {
+          log("Person not recognized");
+          Fluttertoast.showToast(
+              msg: "Person not recognized",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.SNACKBAR,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0);
+        } else {
+          Fluttertoast.showToast(
+              msg: "Person verified successfully",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.SNACKBAR,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0);
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (context) => HomeScreen()));
+        }
+      } else {
+        print("Error while sending image");
+      }
+
+      //_postimage();
+
+      // var url =
+      //     "http://172.105.41.185:5000/data";
+
+      // var data = http.post(
+      //     Uri.parse(url),
+      //     body: jsonEncode());
+      // var response =
+      //     json.decode(data.body);
+      // if (data.toString() == "1") {
+      //   print(
+      //       "Image sent successfully");
+      // } else if (data.toString() ==
+      //     0) {
+      //   print(
+      //       "Error while sending image");
+      // }
+
+      refreshAlreadyCapturedImages();
+    });
   }
 
   @override
@@ -335,202 +496,6 @@ class _CameraScreenState extends State<CameraScreen>
                               child: Column(
                                 children: [
                                   Padding(padding: EdgeInsets.only(top: 600)),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      InkWell(
-                                        onTap: _isRecordingInProgress
-                                            ? () async {
-                                                if (controller!
-                                                    .value.isRecordingPaused) {
-                                                  await resumeVideoRecording();
-                                                } else {
-                                                  await pauseVideoRecording();
-                                                }
-                                              }
-                                            : () {
-                                                setState(() {
-                                                  _isCameraInitialized = false;
-                                                });
-                                                onNewCameraSelected(cameras[
-                                                    _isRearCameraSelected
-                                                        ? 1
-                                                        : 0]);
-                                                setState(() {
-                                                  _isRearCameraSelected =
-                                                      !_isRearCameraSelected;
-                                                });
-                                              },
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.circle,
-                                              color: Colors.black38,
-                                              size: 60,
-                                            ),
-                                            _isRecordingInProgress
-                                                ? controller!
-                                                        .value.isRecordingPaused
-                                                    ? Icon(
-                                                        Icons.play_arrow,
-                                                        color: Colors.white,
-                                                        size: 30,
-                                                      )
-                                                    : Icon(
-                                                        Icons.pause,
-                                                        color: Colors.white,
-                                                        size: 30,
-                                                      )
-                                                : Icon(
-                                                    _isRearCameraSelected
-                                                        ? Icons.camera_front
-                                                        : Icons.camera_rear,
-                                                    color: Colors.white,
-                                                    size: 30,
-                                                  ),
-                                          ],
-                                        ),
-                                      ),
-                                      InkWell(
-                                        onTap: _isVideoCameraSelected
-                                            ? () async {
-                                                if (_isRecordingInProgress) {
-                                                  XFile? rawVideo =
-                                                      await stopVideoRecording();
-                                                  File videoFile =
-                                                      File(rawVideo!.path);
-
-                                                  int currentUnix = DateTime
-                                                          .now()
-                                                      .millisecondsSinceEpoch;
-
-                                                  final directory =
-                                                      await getApplicationDocumentsDirectory();
-
-                                                  String fileFormat = videoFile
-                                                      .path
-                                                      .split('.')
-                                                      .last;
-
-                                                  _videoFile =
-                                                      await videoFile.copy(
-                                                    '${directory.path}/$currentUnix.$fileFormat',
-                                                  );
-
-                                                  _startVideoPlayer();
-                                                } else {
-                                                  await startVideoRecording();
-                                                }
-                                              }
-                                            : () async {
-                                                XFile? rawImage =
-                                                    await takePicture();
-                                                File imageFile =
-                                                    File(rawImage!.path);
-
-                                                int currentUnix = DateTime.now()
-                                                    .millisecondsSinceEpoch;
-
-                                                final directory =
-                                                    await getApplicationDocumentsDirectory();
-
-                                                String fileFormat = imageFile
-                                                    .path
-                                                    .split('.')
-                                                    .last;
-
-                                                print(fileFormat);
-
-                                                await imageFile.copy(
-                                                  '${directory.path}/$currentUnix.$fileFormat',
-                                                );
-
-                                                refreshAlreadyCapturedImages();
-                                              },
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.circle,
-                                              color: _isVideoCameraSelected
-                                                  ? Colors.white
-                                                  : Colors.white38,
-                                              size: 80,
-                                            ),
-                                            Icon(
-                                              Icons.circle,
-                                              color: _isVideoCameraSelected
-                                                  ? Colors.red
-                                                  : Colors.white,
-                                              size: 65,
-                                            ),
-                                            _isVideoCameraSelected &&
-                                                    _isRecordingInProgress
-                                                ? Icon(
-                                                    Icons.stop_rounded,
-                                                    color: Colors.white,
-                                                    size: 32,
-                                                  )
-                                                : Container(),
-                                          ],
-                                        ),
-                                      ),
-                                      InkWell(
-                                        onTap: _imageFile != null ||
-                                                _videoFile != null
-                                            ? () {
-                                                Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        PreviewScreen(
-                                                      imageFile: _imageFile!,
-                                                      fileList: allFileList,
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                            : null,
-                                        child: Container(
-                                          width: 60,
-                                          height: 60,
-                                          decoration: BoxDecoration(
-                                            color: Colors.black,
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                            border: Border.all(
-                                              color: Colors.white,
-                                              width: 2,
-                                            ),
-                                            image: _imageFile != null
-                                                ? DecorationImage(
-                                                    image:
-                                                        FileImage(_imageFile!),
-                                                    fit: BoxFit.cover,
-                                                  )
-                                                : null,
-                                          ),
-                                          child: videoController != null &&
-                                                  videoController!
-                                                      .value.isInitialized
-                                              ? ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
-                                                  child: AspectRatio(
-                                                    aspectRatio:
-                                                        videoController!
-                                                            .value.aspectRatio,
-                                                    child: VideoPlayer(
-                                                        videoController!),
-                                                  ),
-                                                )
-                                              : Container(),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ],
                               ),
                             ),
@@ -541,86 +506,7 @@ class _CameraScreenState extends State<CameraScreen>
                         child: SingleChildScrollView(
                           physics: BouncingScrollPhysics(),
                           child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                    16.0, 8.0, 16.0, 8.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    InkWell(
-                                      onTap: () async {
-                                        setState(() {
-                                          _currentFlashMode = FlashMode.off;
-                                        });
-                                        await controller!.setFlashMode(
-                                          FlashMode.off,
-                                        );
-                                      },
-                                      child: Icon(
-                                        Icons.flash_off,
-                                        color:
-                                            _currentFlashMode == FlashMode.off
-                                                ? Colors.amber
-                                                : Colors.white,
-                                      ),
-                                    ),
-                                    InkWell(
-                                      onTap: () async {
-                                        setState(() {
-                                          _currentFlashMode = FlashMode.auto;
-                                        });
-                                        await controller!.setFlashMode(
-                                          FlashMode.auto,
-                                        );
-                                      },
-                                      child: Icon(
-                                        Icons.flash_auto,
-                                        color:
-                                            _currentFlashMode == FlashMode.auto
-                                                ? Colors.amber
-                                                : Colors.white,
-                                      ),
-                                    ),
-                                    InkWell(
-                                      onTap: () async {
-                                        setState(() {
-                                          _currentFlashMode = FlashMode.always;
-                                        });
-                                        await controller!.setFlashMode(
-                                          FlashMode.always,
-                                        );
-                                      },
-                                      child: Icon(
-                                        Icons.flash_on,
-                                        color: _currentFlashMode ==
-                                                FlashMode.always
-                                            ? Colors.amber
-                                            : Colors.white,
-                                      ),
-                                    ),
-                                    InkWell(
-                                      onTap: () async {
-                                        setState(() {
-                                          _currentFlashMode = FlashMode.torch;
-                                        });
-                                        await controller!.setFlashMode(
-                                          FlashMode.torch,
-                                        );
-                                      },
-                                      child: Icon(
-                                        Icons.highlight,
-                                        color:
-                                            _currentFlashMode == FlashMode.torch
-                                                ? Colors.amber
-                                                : Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
+                            children: [],
                           ),
                         ),
                       ),

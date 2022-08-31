@@ -1,5 +1,6 @@
 import 'package:face_logic/components/body.dart';
 import 'package:face_logic/constants.dart';
+import 'package:face_logic/screens/app_drawer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: buildAppBar(),
+      drawer: AppDrawer(),
       body: Body(),
     );
   }
@@ -18,8 +20,10 @@ class HomeScreen extends StatelessWidget {
     return AppBar(
       elevation: 0,
       backgroundColor: kPrimaryColor,
-      leading: IconButton(
-          onPressed: () {}, icon: SvgPicture.asset("assets/icons/menu.svg")),
+      // leading: IconButton(
+      //   icon: SvgPicture.asset("assets/icons/menu.svg"),
+      //   onPressed: () {},
+      // ),
     );
   }
 }
