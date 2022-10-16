@@ -1,34 +1,33 @@
 {
   "project_info": {
-    "project_number": "288230763332",
-    "firebase_url": "https://facerecognition-d150a-default-rtdb.asia-southeast1.firebasedatabase.app",
-    "project_id": "facerecognition-d150a",
-    "storage_bucket": "facerecognition-d150a.appspot.com"
+    "project_number": "552788312924",
+    "project_id": "facelogic-16346",
+    "storage_bucket": "facelogic-16346.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:288230763332:android:82188600b5de10a5a40511",
+        "mobilesdk_app_id": "1:552788312924:android:7739f9b626d3d12c6b7799",
         "android_client_info": {
           "package_name": "com.example.face_logic"
         }
       },
       "oauth_client": [
         {
-          "client_id": "288230763332-vp0aivf8okl6583tlkh0eorj5ob4i7ob.apps.googleusercontent.com",
+          "client_id": "552788312924-3c4uu6cci7n2ttpst7hq6ntqo61tst90.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDLLq8uEJfafRyalGfmNyZAEvy-B0NCXrc"
+          "current_key": "AIzaSyDOR6UG1_ab6kALR2cKoUBL--dM271FU9E"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "288230763332-vp0aivf8okl6583tlkh0eorj5ob4i7ob.apps.googleusercontent.com",
+              "client_id": "552788312924-3c4uu6cci7n2ttpst7hq6ntqo61tst90.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

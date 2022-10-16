@@ -1,15 +1,17 @@
-import 'dart:ui';
-
 import 'package:face_logic/main.dart';
 import 'package:face_logic/screens/otp_verify_screen.dart';
-import 'package:face_logic/screens/registration_screen.dart';
-import 'package:flutter/cupertino.dart';
+
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/FormHelper.dart';
 import 'package:snippet_coder_utils/ProgressHUD.dart';
 
 class LoginOTPPage extends StatefulWidget {
   const LoginOTPPage({Key? key}) : super(key: key);
+
+  static String verify = "";
+  static String phoneNumber = "";
 
   @override
   State<LoginOTPPage> createState() => _LoginOTPPageState();
@@ -84,6 +86,9 @@ class _LoginOTPPageState extends State<LoginOTPPage> {
               Flexible(
                 flex: 5,
                 child: TextFormField(
+                  onFieldSubmitted: (value) {
+                    mobileNo = value;
+                  },
                   maxLines: 1,
                   maxLength: 10,
                   decoration: const InputDecoration(
@@ -115,9 +120,19 @@ class _LoginOTPPageState extends State<LoginOTPPage> {
           ),
         ),
         Center(
-          child: FormHelper.submitButton("Continue", () {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => OtpVerifyPage()));
+          child: FormHelper.submitButton("Continue", () async {
+            await FirebaseAuth.instance.verifyPhoneNumber(
+              phoneNumber: '+91 ${mobileNo}',
+              verificationCompleted: (PhoneAuthCredential credential) {},
+              verificationFailed: (FirebaseAuthException e) {},
+              codeSent: (String verificationId, int? resendToken) {
+                LoginOTPPage.verify = verificationId;
+                LoginOTPPage.phoneNumber = '+91${mobileNo}';
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => OtpVerifyPage()));
+              },
+              codeAutoRetrievalTimeout: (String verificationId) {},
+            );
           },
               borderColor: HexColor("#78D0B1"),
               btnColor: HexColor("#78D0B1"),
@@ -127,19 +142,19 @@ class _LoginOTPPageState extends State<LoginOTPPage> {
         SizedBox(
           height: 10,
         ),
-        Padding(
-          padding: const EdgeInsets.only(top: 20),
-          child: InkWell(
-            onTap: () {
-              Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => RegistrationPage()));
-            },
-            child: new Text(
-              "Not Registered? Signup",
-              style: TextStyle(fontSize: 14),
-            ),
-          ),
-        )
+        // Padding(
+        //   padding: const EdgeInsets.only(top: 20),
+        //   child: InkWell(
+        //     onTap: () {
+        //       Navigator.of(context).pushReplacement(
+        //           MaterialPageRoute(builder: (context) => RegistrationPage()));
+        //     },
+        //     child: new Text(
+        //       "Not Registered? Signup",
+        //       style: TextStyle(fontSize: 14),
+        //     ),
+        //   ),
+        // )
       ],
     );
   }

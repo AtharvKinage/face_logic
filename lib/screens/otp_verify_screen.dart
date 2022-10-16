@@ -1,10 +1,14 @@
 import 'package:face_logic/screens/home_screen.dart';
+import 'package:face_logic/screens/login_screen.dart';
+import 'package:face_logic/screens/registration_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:snippet_coder_utils/FormHelper.dart';
 import 'package:snippet_coder_utils/ProgressHUD.dart';
 
+import '../components/body.dart';
 import '../main.dart';
 
 class OtpVerifyPage extends StatefulWidget {
@@ -17,8 +21,9 @@ class OtpVerifyPage extends StatefulWidget {
 }
 
 class _OtpVerifyPageState extends State<OtpVerifyPage> {
+  final FirebaseAuth auth = FirebaseAuth.instance;
   String _otpCode = "";
-  final int _otpCodeLength = 4;
+  final int _otpCodeLength = 6;
   bool isAPICallProcess = false;
   late FocusNode myFocusNode;
   @override
@@ -73,7 +78,7 @@ class _OtpVerifyPageState extends State<OtpVerifyPage> {
         ),
         Center(
           child: Text(
-            "Enter  OTP code sent to your mobile \n +91-${widget.mobileNo}",
+            "Enter  OTP code sent to your mobile",
             maxLines: 2,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 14),
@@ -99,9 +104,16 @@ class _OtpVerifyPageState extends State<OtpVerifyPage> {
           height: 20,
         ),
         Center(
-          child: FormHelper.submitButton("Verify", () {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => HomeScreen()));
+          child: FormHelper.submitButton("Verify", () async {
+            try {
+              PhoneAuthCredential credential = PhoneAuthProvider.credential(
+                  verificationId: LoginOTPPage.verify, smsCode: _otpCode);
+              await auth.signInWithCredential(credential);
+              Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => RegistrationPage()));
+            } catch (e) {
+              print("Wrong Otp");
+            }
           },
               borderColor: HexColor("#78D0B1"),
               btnColor: HexColor("#78D0B1"),

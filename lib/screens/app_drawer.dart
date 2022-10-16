@@ -2,6 +2,7 @@ import 'package:face_logic/screens/form_screen.dart';
 import 'package:face_logic/screens/home_screen.dart';
 import 'package:face_logic/screens/profile_screen.dart';
 import 'package:face_logic/screens/registration_screen.dart';
+import 'package:face_logic/screens/signin_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'login_screen.dart';
 
 class AppDrawer extends StatelessWidget {
-  // final auth = FirebaseAuth.instance;
+  final auth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -42,9 +43,9 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.logout_rounded),
             title: Text('Log Out'),
             onTap: () {
-              // auth.signOut();
+              auth.signOut();
               Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => LoginOTPPage()));
+                  MaterialPageRoute(builder: (context) => SignInScreen()));
             },
           ),
         ],

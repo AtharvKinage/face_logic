@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 AppBar buildAppBar(BuildContext context) {
   return AppBar(
     title: Text("Profile"),
-    leading: BackButton(),
+    // leading: BackButton(),
     backgroundColor: kPrimaryColor,
     elevation: 0,
   ); // AppBar

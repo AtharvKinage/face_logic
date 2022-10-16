@@ -13,6 +13,9 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
+  final empNameController = TextEditingController();
+  final emailController = TextEditingController();
+  final mobileNumberController = TextEditingController();
   String _selectedGender = 'male';
   DateTime selectedDate = DateTime.now();
   @override
@@ -31,24 +34,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
           const SizedBox(height: 24),
           TextFieldWidget(
+            controller: empNameController,
             label: 'Employee Name',
             text: "Atharv Kinage",
             onChanged: (name) {},
           ),
           const SizedBox(height: 24),
           TextFieldWidget(
+            controller: emailController,
             label: 'User Id',
             text: "S4829",
             onChanged: (userId) {},
           ),
           const SizedBox(height: 24),
           TextFieldWidget(
+            controller: emailController,
             label: 'Email Id',
             text: "atharvkinage@gmail.com",
             onChanged: (email) {},
           ),
           const SizedBox(height: 24),
           TextFieldWidget(
+            controller: emailController,
             label: 'Mobile Number',
             text: "8600608273",
             onChanged: (mobile_number) {},
