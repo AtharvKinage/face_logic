@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/appbar_widget.dart';
 import '../utils/profile_widget.dart';
@@ -76,14 +77,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             // ),
 
             const SizedBox(height: 24),
-            TextFieldWidget(
-              controller: mobileNumberController,
-              label: 'Mobile Number',
-              text: LoginOTPPage.phoneNumber,
-              onChanged: (mobile_number) {
-                // mobileNumber = mobile_number;
-              },
-            ),
+            
             const SizedBox(height: 24),
             Text(
               "Date of Birth",
@@ -227,7 +221,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate, // Refer step 1
-      firstDate: DateTime(2000),
+      firstDate: DateTime(1950),
       lastDate: DateTime(2025),
     );
     if (picked != null && picked != selectedDate)
@@ -250,7 +244,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
               email: emailController.text.trim(),
               password: passwordController.text.trim());
       if (newUser != null) {
-        await ref.child(LoginOTPPage.phoneNumber).update({
+        await ref.child(newUser.user!.uid).update({
           "name": empNameController.text,
           "email": emailController.text,
           "phoneNumber": LoginOTPPage.phoneNumber,

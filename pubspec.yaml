@@ -63,6 +63,7 @@ dependencies:
   flutter_progress_hud: ^2.0.2
   cloud_firestore: ^3.5.1
   email_validator: ^2.1.17
+  shared_preferences: ^2.0.15
  
  
 dev_dependencies:

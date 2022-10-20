@@ -10,6 +10,7 @@ import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);
@@ -297,6 +298,8 @@ class _SignInScreenState extends State<SignInScreen> {
           email: emailController.text.trim(),
           password: passwordController.text.trim());
       if (user != null) {
+        // final prefs = await SharedPreferences.getInstance();
+        // prefs.setString('email', emailController.text.trim());
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => HomeScreen()));
       }

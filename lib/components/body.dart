@@ -20,7 +20,7 @@ final FirebaseAuth auth = FirebaseAuth.instance;
 final User? user = auth.currentUser;
 final uid = user?.uid;
 FirebaseDatabase database = FirebaseDatabase.instance;
-DatabaseReference reference = FirebaseDatabase.instance.ref("Users");
+DatabaseReference reference = FirebaseDatabase.instance.ref("users");
 
 class Body extends StatelessWidget {
   const Body({Key? key}) : super(key: key);
@@ -58,7 +58,7 @@ class _HeaderState extends State<Header> {
   bool isOuttimeMarked = false;
 
   String databasejson = '';
-  var name;
+  var name = "";
   var photo =
       "https://firebasestorage.googleapis.com/v0/b/facerecognition-d150a.appspot.com/o/profile.jpg?alt=media&token=0f92c782-019e-42ea-890f-06028a9ead23";
 
@@ -69,7 +69,7 @@ class _HeaderState extends State<Header> {
   void initState() {
     super.initState();
     database = FirebaseDatabase.instance;
-    reference = FirebaseDatabase.instance.ref("Users");
+    reference = FirebaseDatabase.instance.ref("users");
   }
 
   @override
@@ -398,11 +398,11 @@ class _HeaderState extends State<Header> {
 
   Future<void> read_data() async {
     reference.onValue.listen((DatabaseEvent event) {
-      final data = event.snapshot.child(uid.toString()).child("Name").value;
-      final img = event.snapshot.child(uid.toString()).child("photo").value;
+      final data = event.snapshot.child(uid.toString()).child("name").value;
+      // final img = event.snapshot.child(uid.toString()).child("photo").value;
       setState(() {
         name = data.toString();
-        photo = img.toString();
+        // photo = img.toString();
       });
     });
   }
