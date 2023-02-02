@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:face_logic/constants.dart';
-import 'package:face_logic/screens/leave_details.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
@@ -9,17 +9,17 @@ import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 
 import '../models/leaveApplicationModel.dart';
+import 'leave_details.dart';
 
-class LeaveApplicationHistory extends StatefulWidget {
-  String? route;
-  LeaveApplicationHistory({Key? key, this.route}) : super(key: key);
+class Applications extends StatefulWidget {
+  final String? route;
+  const Applications({Key? key, this.route}) : super(key: key);
 
   @override
-  State<LeaveApplicationHistory> createState() =>
-      _LeaveApplicationHistoryState();
+  State<Applications> createState() => _ApplicationsState();
 }
 
-class _LeaveApplicationHistoryState extends State<LeaveApplicationHistory> {
+class _ApplicationsState extends State<Applications> {
   List<LeaveModel> leaveApplications = [];
   final User? user = FirebaseAuth.instance.currentUser;
   getleaveApplications() async {
@@ -27,12 +27,14 @@ class _LeaveApplicationHistoryState extends State<LeaveApplicationHistory> {
     if (widget.route == "director") {
       query1 = FirebaseFirestore.instance
           .collection("leave_applications_admins")
-          .where("status", isNotEqualTo: "pending");
+          .where("status", isEqualTo: "pending");
+    } else if (widget.route == "all") {
+      query1 = FirebaseFirestore.instance.collection("leave_applications");
     } else {
       query1 = FirebaseFirestore.instance
           .collection("leave_applications")
           .where("teamLead", isEqualTo: user!.uid.toString())
-          .where("status", isNotEqualTo: "pending");
+          .where("status", isEqualTo: "pending");
     }
 
     leaveApplications = await query1.get().then((value) => value.docs
@@ -58,7 +60,7 @@ class _LeaveApplicationHistoryState extends State<LeaveApplicationHistory> {
       appBar: AppBar(
           elevation: 10,
           backgroundColor: kPrimaryColor,
-          title: Text("Applications history")
+          title: Text("Leave Applications")
           // leading: IconButton(
           //   icon: SvgPicture.asset("assets/icons/menu.svg"),
           //   onPressed: () {},
@@ -70,20 +72,33 @@ class _LeaveApplicationHistoryState extends State<LeaveApplicationHistory> {
           itemCount: leaveApplications.length,
           itemBuilder: ((context, index) {
             return Card(
-              color: leaveApplications[index].status == "approved"
-                  ? Colors.green
-                  : leaveApplications[index].status == "declined"
-                      ? Colors.red
-                      : Colors.yellow,
+              color: leaveApplications[index].status == "pending"
+                  ? Colors.yellow
+                  : leaveApplications[index].status == "approved"
+                      ? Colors.green
+                      : Colors.red,
               margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
               elevation: 5,
               child: ListTile(
                 title: Text(leaveApplications[index].name),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => LeaveDetails(
-                          application: leaveApplications[index],
-                          route: "history")));
+                  if (widget.route == "director") {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => LeaveDetails(
+                              application: leaveApplications[index],
+                              route: "director",
+                            )));
+                  } else if (widget.route == "all") {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => LeaveDetails(
+                              application: leaveApplications[index],
+                              route: "history",
+                            )));
+                  } else {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => LeaveDetails(
+                            application: leaveApplications[index])));
+                  }
                 },
                 subtitle: leaveApplications[index].day == "Full Day"
                     ? Text(

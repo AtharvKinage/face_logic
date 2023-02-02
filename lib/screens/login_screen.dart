@@ -40,8 +40,8 @@ class _LoginOTPPageState extends State<LoginOTPPage> {
       children: [
         Image.network("https://i.imgur.com/bOCEVJg.png",
             height: 180, fit: BoxFit.contain),
-        Padding(
-          padding: const EdgeInsets.only(top: 10),
+        const Padding(
+          padding: EdgeInsets.only(top: 10),
           child: Center(
             child: Text(
               "Login with a Mobile number",
@@ -52,7 +52,7 @@ class _LoginOTPPageState extends State<LoginOTPPage> {
         const SizedBox(
           height: 10,
         ),
-        Center(
+        const Center(
           child: Text(
             "Enter your mobile number we will send you OTP to verify",
             style: TextStyle(fontSize: 14),
@@ -122,14 +122,14 @@ class _LoginOTPPageState extends State<LoginOTPPage> {
         Center(
           child: FormHelper.submitButton("Continue", () async {
             await FirebaseAuth.instance.verifyPhoneNumber(
-              phoneNumber: '+91 ${mobileNo}',
+              phoneNumber: '+91 $mobileNo',
               verificationCompleted: (PhoneAuthCredential credential) {},
               verificationFailed: (FirebaseAuthException e) {},
               codeSent: (String verificationId, int? resendToken) {
                 LoginOTPPage.verify = verificationId;
-                LoginOTPPage.phoneNumber = '+91${mobileNo}';
+                LoginOTPPage.phoneNumber = '+91$mobileNo';
                 Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => OtpVerifyPage()));
+                    MaterialPageRoute(builder: (context) => const OtpVerifyPage()));
               },
               codeAutoRetrievalTimeout: (String verificationId) {},
             );
@@ -139,7 +139,7 @@ class _LoginOTPPageState extends State<LoginOTPPage> {
               txtColor: HexColor("#000000"),
               borderRadius: 20),
         ),
-        SizedBox(
+        const SizedBox(
           height: 10,
         ),
         // Padding(

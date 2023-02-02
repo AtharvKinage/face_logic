@@ -21,8 +21,8 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
-  DatabaseReference ref = FirebaseDatabase.instance.ref("users");
-  // CollectionReference users = FirebaseFirestore.instance.collection('users');
+  // DatabaseReference ref = FirebaseDatabase.instance.ref("users");
+  CollectionReference users = FirebaseFirestore.instance.collection('director');
   // String empName = "";
   // String email = "";
   // String mobileNumber = "";
@@ -77,7 +77,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             // ),
 
             const SizedBox(height: 24),
-            
+
             const SizedBox(height: 24),
             Text(
               "Date of Birth",
@@ -222,12 +222,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
       context: context,
       initialDate: selectedDate, // Refer step 1
       firstDate: DateTime(1950),
-      lastDate: DateTime(2025),
+      lastDate: DateTime.now(),
     );
-    if (picked != null && picked != selectedDate)
+    if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
       });
+    }
   }
 
   Future signUp() async {
@@ -244,12 +245,22 @@ class _RegistrationPageState extends State<RegistrationPage> {
               email: emailController.text.trim(),
               password: passwordController.text.trim());
       if (newUser != null) {
-        await ref.child(newUser.user!.uid).update({
+        // await ref.child(newUser.user!.uid).update({
+        //   "name": empNameController.text,
+        //   "email": emailController.text,
+        //   "phoneNumber": LoginOTPPage.phoneNumber,
+        //   "dob": DateFormat('dd-MM-yyyy').format(selectedDate).toString(),
+        //   "gender": _selectedGender,
+        //   "role": "employee"
+        // })
+        await users.doc(newUser.user!.uid).set({
           "name": empNameController.text,
           "email": emailController.text,
-          "phoneNumber": LoginOTPPage.phoneNumber,
+          "phoneNumber": "",
           "dob": DateFormat('dd-MM-yyyy').format(selectedDate).toString(),
           "gender": _selectedGender,
+          "designation": "PRINCIPAL",
+          "department": "-"
         }).then((_) {
           Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (context) => HomeScreen()));
@@ -258,6 +269,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     } on FirebaseAuthException catch (e) {
       print(e);
       showSnackBar(context, "something went wrong");
+      Navigator.of(context).pop();
     }
   }
 }

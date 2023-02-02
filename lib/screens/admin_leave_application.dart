@@ -1,26 +1,26 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:face_logic/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/container.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../constants.dart';
 import 'home_screen.dart';
 
-class LeaveForm extends StatefulWidget {
-  const LeaveForm({Key? key}) : super(key: key);
+class AdminLeaveApplication extends StatefulWidget {
+  const AdminLeaveApplication({Key? key}) : super(key: key);
 
   @override
-  _LeaveFormState createState() => _LeaveFormState();
+  State<AdminLeaveApplication> createState() => _AdminLeaveApplicationState();
 }
 
-class _LeaveFormState extends State<LeaveForm> {
+class _AdminLeaveApplicationState extends State<AdminLeaveApplication> {
   final User? user = FirebaseAuth.instance.currentUser;
   CollectionReference leave_form =
-      FirebaseFirestore.instance.collection('leave_applications');
+      FirebaseFirestore.instance.collection('leave_applications_admins');
   String userName = "";
   String teamLead = '';
   String teamLeadUID = '';
@@ -47,19 +47,19 @@ class _LeaveFormState extends State<LeaveForm> {
 
   void getUserData() async {
     final uid = user?.uid;
-    final userCollection = FirebaseFirestore.instance
-        .collection("users")
+    final adminCollection = FirebaseFirestore.instance
+        .collection("admins")
         .doc(user!.uid.toString());
-    final snapshot = await userCollection.get().then((value) async {
+    final snapshot = await adminCollection.get().then((value) async {
       userName = value.get('name');
 
       final snapshot1 = await FirebaseFirestore.instance
-          .collection("admins")
-          .doc(value.get('teamLead'))
+          .collection("director")
+          .doc(value.get('director'))
           .get();
       setState(() {
         teamLead = snapshot1.get('name');
-        teamLeadUID = value.get('teamLead');
+        teamLeadUID = value.get('director');
       });
     });
   }
@@ -431,7 +431,7 @@ class _LeaveFormState extends State<LeaveForm> {
                       "leave_type": selected_leave_type,
                       "uid": user!.uid.toString(),
                       "status": "pending",
-                      "teamLead": teamLeadUID
+                      "director": teamLeadUID
                     }).then((_) {
                       Fluttertoast.showToast(
                           msg: "Leave Application sent sucessfully",

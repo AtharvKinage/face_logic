@@ -306,6 +306,7 @@ class _SignInScreenState extends State<SignInScreen> {
     } on FirebaseAuthException catch (e) {
       print(e);
       showSnackBar(context, "Email and password don't match");
+      Navigator.of(context).pop();
     }
   }
 }

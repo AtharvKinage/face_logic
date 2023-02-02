@@ -64,6 +64,7 @@ dependencies:
   cloud_firestore: ^3.5.1
   email_validator: ^2.1.17
   shared_preferences: ^2.0.15
+  table_calendar: ^3.0.8
  
  
 dev_dependencies:

@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'login_screen.dart';
 
 class AppDrawer extends StatelessWidget {
+  final String isAdmin;
+  AppDrawer(this.isAdmin);
   final auth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
@@ -34,8 +36,10 @@ class AppDrawer extends StatelessWidget {
             leading: Icon(Icons.help),
             title: Text('Profile'),
             onTap: () {
-              Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => EditProfilePage()));
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => EditProfilePage(
+                        isAdmin: isAdmin,
+                      )));
             },
           ),
           Divider(),

@@ -14,7 +14,7 @@ import '../main.dart';
 class OtpVerifyPage extends StatefulWidget {
   final String? mobileNo;
   final String? otp;
-  const OtpVerifyPage({this.mobileNo, this.otp});
+  const  OtpVerifyPage({this.mobileNo, this.otp});
 
   @override
   State<OtpVerifyPage> createState() => _OtpVerifyPageState();
