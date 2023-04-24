@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:face_logic/components/body.dart';
 import 'package:face_logic/constants.dart';
@@ -34,17 +36,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void checkifDirector() async {
-    final userCollection = FirebaseFirestore.instance
-        .collection("director")
-        .doc(user!.uid.toString());
+    if (mounted) {
+      final userCollection = FirebaseFirestore.instance
+          .collection("director")
+          .doc(user!.uid.toString());
 
-    final snapshot = await userCollection.get();
-    if (snapshot.exists) {
-      isDirector = "true";
-      setState(() {});
-    } else {
-      isDirector = "false";
-      setState(() {});
+      final snapshot = await userCollection.get();
+      if (snapshot.exists) {
+        isDirector = "true";
+        setState(() {});
+      } else {
+        isDirector = "false";
+        setState(() {});
+      }
     }
   }
 
@@ -57,20 +61,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    checkifAdmin();
+    checkifDirector();
     return isAdmin == ""
         ? Scaffold(
             body: Container(),
           )
-        : Scaffold(
-            appBar: buildAppBar(isAdmin),
-            drawer: isDirector == "true"
-                ? AppDrawer("Director")
-                : AppDrawer(isAdmin),
-            body: isAdmin == "true"
-                ? AdminHome()
-                : isDirector == "true"
-                    ? DirectorHome()
-                    : Header(),
+        : WillPopScope(
+            onWillPop: _exit,
+            child: Scaffold(
+              appBar: buildAppBar(isAdmin),
+              drawer: isDirector == "true"
+                  ? AppDrawer("Director")
+                  : AppDrawer(isAdmin),
+              body: isAdmin == "true"
+                  ? AdminHome()
+                  : isDirector == "true"
+                      ? DirectorHome()
+                      : Header(),
+            ),
           );
   }
 
@@ -88,5 +97,11 @@ class _HomeScreenState extends State<HomeScreen> {
       //   onPressed: () {},
       // ),
     );
+  }
+
+  Future<bool> _exit() async {
+    Navigator.of(context).pop(true);
+    exit(0);
+    return await true;
   }
 }

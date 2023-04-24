@@ -2,10 +2,12 @@ import 'package:camera/camera.dart';
 import 'package:face_logic/constants.dart';
 import 'package:face_logic/screens/login_screen.dart';
 import 'package:face_logic/screens/logout.dart';
+import 'package:face_logic/screens/registration_screen.dart';
 import 'package:face_logic/screens/signin_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'screens/home_screen.dart';
 
@@ -14,6 +16,7 @@ List<CameraDescription> cameras = [];
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await dotenv.load(fileName: ".env");
   try {
     WidgetsFlutterBinding.ensureInitialized();
     cameras = await availableCameras();
@@ -41,13 +44,13 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: MainPage(),
-      // home: FirebaseAuth.instance.currentUser == null
-      //     ? SignInScreen()
-      //     : HomeScreen(),
+      // home: RegistrationPage(),
+      home: FirebaseAuth.instance.currentUser == null
+          ? SignInScreen()
+          : HomeScreen(),
       // //make flutter aware of app routes using router generator in router.dart file
-      //onGenerateRoute: generateRoute,
-      //initialRoute: loginScreenRoute,
+      // onGenerateRoute: generateRoute,
+      // initialRoute: loginScreenRoute,
     );
   }
 }

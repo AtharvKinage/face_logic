@@ -28,6 +28,7 @@ class _AdminHomeState extends State<DirectorHome> {
   List<UserModel> members = [];
   List<LeaveModel> leaveApplications = [];
   List<LeaveModel> allleaveApplications = [];
+  bool isLoading = true;
 
   void getTeamMember() async {
     final Query query = FirebaseFirestore.instance
@@ -50,8 +51,10 @@ class _AdminHomeState extends State<DirectorHome> {
         )
         .toList());
     setState(() {});
-    final Query query2 =
-        FirebaseFirestore.instance.collection("leave_applications").limit(3);
+    final Query query2 = FirebaseFirestore.instance
+        .collection("leave_applications")
+        .where("status", isEqualTo: "pending")
+        .limit(3);
     allleaveApplications =
         await query2.limit(3).get().then((value) => value.docs
             .map<LeaveModel>(
@@ -64,6 +67,7 @@ class _AdminHomeState extends State<DirectorHome> {
           (e) => UserModel.fromDocumentSnapshot(e),
         )
         .toList());
+    isLoading = false;
 
     setState(() {});
   }
@@ -88,7 +92,10 @@ class _AdminHomeState extends State<DirectorHome> {
               children: [
                 const Padding(
                   padding: EdgeInsets.all(12.0),
-                  child: Text("Leave Applications"),
+                  child: Text(
+                    "Leave Applications HOD",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 GestureDetector(
                   onTap: () {
@@ -98,41 +105,50 @@ class _AdminHomeState extends State<DirectorHome> {
                   },
                   child: const Padding(
                     padding: EdgeInsets.all(12.0),
-                    child: Text("view more"),
+                    child: Text("view more",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 )
               ],
             ),
             Container(
               height: h * 0.3,
-              child: ListView.builder(
-                  cacheExtent: 0.5,
-                  scrollDirection: Axis.vertical,
-                  itemCount: leaveApplications.length,
-                  itemBuilder: ((context, index) {
-                    return Card(
-                      color: Colors.yellow,
-                      margin:
-                          const EdgeInsets.only(top: 10, left: 10, right: 10),
-                      elevation: 5,
-                      child: ListTile(
-                        title: Text(leaveApplications[index].name),
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => LeaveDetails(
-                                    application: leaveApplications[index],
-                                    route: "director",
-                                  )));
-                        },
-                        subtitle: Text(leaveApplications[index]
-                            .to
-                            .difference(leaveApplications[index].from)
-                            .inDays
-                            .toString()),
-                        trailing: Text(leaveApplications[index].status),
-                      ),
-                    );
-                  })),
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : leaveApplications.isNotEmpty
+                      ? ListView.builder(
+                          cacheExtent: 0.5,
+                          scrollDirection: Axis.vertical,
+                          itemCount: leaveApplications.length,
+                          itemBuilder: ((context, index) {
+                            return Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15.0),
+                              ),
+                              color: Colors.yellow,
+                              margin: const EdgeInsets.only(
+                                  top: 10, left: 10, right: 10),
+                              elevation: 5,
+                              child: ListTile(
+                                title: Text(leaveApplications[index].name),
+                                onTap: () {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => LeaveDetails(
+                                            application:
+                                                leaveApplications[index],
+                                            route: "director",
+                                          )));
+                                },
+                                subtitle: leaveApplications[index].day ==
+                                        "Full Day"
+                                    ? Text(
+                                        "${leaveApplications[index].to.difference(leaveApplications[index].from).inDays + 1} days")
+                                    : const Text('Half Day'),
+                                trailing: Text(leaveApplications[index].status),
+                              ),
+                            );
+                          }))
+                      : Center(child: Text("No applications")),
             ),
             const SizedBox(
               height: 20,
@@ -142,7 +158,8 @@ class _AdminHomeState extends State<DirectorHome> {
               children: [
                 const Padding(
                   padding: EdgeInsets.all(12.0),
-                  child: Text("All Applications"),
+                  child: Text("All Applications",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
                 GestureDetector(
                   onTap: () {
@@ -152,71 +169,93 @@ class _AdminHomeState extends State<DirectorHome> {
                   },
                   child: const Padding(
                     padding: EdgeInsets.all(12.0),
-                    child: Text("view more"),
+                    child: Text("view more",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 )
               ],
             ),
             Container(
               height: h * 0.3,
-              child: ListView.builder(
-                  cacheExtent: 0.5,
-                  scrollDirection: Axis.vertical,
-                  itemCount: allleaveApplications.length,
-                  itemBuilder: ((context, index) {
-                    return Card(
-                      color: allleaveApplications[index].status == "pending"
-                          ? Colors.yellow
-                          : allleaveApplications[index].status == "approved"
-                              ? Colors.green
-                              : Colors.red,
-                      margin:
-                          const EdgeInsets.only(top: 10, left: 10, right: 10),
-                      elevation: 5,
-                      child: ListTile(
-                        title: Text(allleaveApplications[index].name),
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => LeaveDetails(
-                                    application: allleaveApplications[index],
-                                    route: "history",
-                                  )));
-                        },
-                        subtitle: allleaveApplications[index].day == "Full Day"
-                            ? Text(allleaveApplications[index]
-                                    .to
-                                    .difference(
-                                        allleaveApplications[index].from)
-                                    .inDays
-                                    .toString() +
-                                " day")
-                            : const Text("Half Day"),
-                        trailing: Text(allleaveApplications[index].status),
-                      ),
-                    );
-                  })),
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : allleaveApplications.isNotEmpty
+                      ? ListView.builder(
+                          cacheExtent: 0.5,
+                          scrollDirection: Axis.vertical,
+                          itemCount: allleaveApplications.length,
+                          itemBuilder: ((context, index) {
+                            return Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15.0),
+                              ),
+                              color: allleaveApplications[index].status ==
+                                      "pending"
+                                  ? Colors.yellow
+                                  : allleaveApplications[index].status ==
+                                          "approved"
+                                      ? Colors.green
+                                      : Colors.red,
+                              margin: const EdgeInsets.only(
+                                  top: 10, left: 10, right: 10),
+                              elevation: 5,
+                              child: ListTile(
+                                title: Text(allleaveApplications[index].name),
+                                onTap: () {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => LeaveDetails(
+                                            application:
+                                                allleaveApplications[index],
+                                            route: "directorApproval",
+                                          )));
+                                },
+                                subtitle: allleaveApplications[index].day ==
+                                        "Full Day"
+                                    // ignore: prefer_interpolation_to_compose_strings
+                                    ? Text(allleaveApplications[index]
+                                            .to
+                                            .difference(
+                                                allleaveApplications[index]
+                                                    .from)
+                                            .inDays
+                                            .toString() +
+                                        " day")
+                                    : const Text("Half Day"),
+                                trailing:
+                                    Text(allleaveApplications[index].status),
+                              ),
+                            );
+                          }))
+                      : Center(
+                          child: Text("No applications"),
+                        ),
             ),
             const SizedBox(
               height: 20,
             ),
-            _leave(context),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: _leave(context),
+            ),
             const SizedBox(
               height: 20,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // ignore: prefer_const_literals_to_create_immutables
               children: [
                 const Padding(
                   padding: EdgeInsets.all(12.0),
-                  child: Text("Team Members"),
+                  child: Text("Team Members",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
-                GestureDetector(
-                  onTap: () {},
-                  child: const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: Text("view more"),
-                  ),
-                )
+                // GestureDetector(
+                //   onTap: () {},
+                //   child: const Padding(
+                //     padding: EdgeInsets.all(12.0),
+                //     child: Text("view more"),
+                //   ),
+                // )
               ],
             ),
             Container(
@@ -227,6 +266,9 @@ class _AdminHomeState extends State<DirectorHome> {
                   itemCount: members.length,
                   itemBuilder: ((context, index) {
                     return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
                       margin:
                           const EdgeInsets.only(top: 10, left: 10, right: 10),
                       elevation: 5,

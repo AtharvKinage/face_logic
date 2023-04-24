@@ -1,15 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:face_logic/constants.dart';
 import 'package:face_logic/models/leaveApplicationModel.dart';
-import 'package:face_logic/screens/admin_home_screen.dart';
-import 'package:face_logic/screens/director_home_screen.dart';
+
 import 'package:face_logic/screens/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
+
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:twilio_flutter/twilio_flutter.dart';
 
 class LeaveDetails extends StatefulWidget {
   final LeaveModel application;
@@ -22,14 +21,23 @@ class LeaveDetails extends StatefulWidget {
 }
 
 class _LeaveDetailsState extends State<LeaveDetails> {
+  TwilioFlutter twilioFlutter = TwilioFlutter(
+      accountSid: dotenv.env['accountSid']!,
+      authToken: dotenv.env['authToken']!,
+      twilioNumber: dotenv.env['twilioNumber']!);
+  bool isDirectorAprroved = false;
+
   @override
   Widget build(BuildContext context) {
     CollectionReference leave_form;
+    CollectionReference user_ref;
     if (widget.route == "director") {
       leave_form =
           FirebaseFirestore.instance.collection('leave_applications_admins');
+      user_ref = FirebaseFirestore.instance.collection('admins');
     } else {
       leave_form = FirebaseFirestore.instance.collection('leave_applications');
+      user_ref = FirebaseFirestore.instance.collection('users');
     }
 
     double h = MediaQuery.of(context).size.height;
@@ -271,9 +279,40 @@ class _LeaveDetailsState extends State<LeaveDetails> {
                   children: [
                     ElevatedButton(
                       onPressed: () async {
+                        String phoneNumber = '';
+                        await user_ref
+                            .doc(widget.application.uid)
+                            .get()
+                            .then((value) {
+                          phoneNumber = value.get('phoneNumber');
+                        });
+                        String field = "approved_by_admin";
+                        String value = "true";
+                        print(widget.route);
+                        if (widget.route == "directorApproval" ||
+                            widget.route == "director") {
+                          field = "status";
+                          value = "approved";
+                          isDirectorAprroved = true;
+                        }
                         await leave_form
                             .doc(widget.application.id)
-                            .update({"status": "approved"});
+                            .update({field: value}).then((value) {
+                          String dateRange = '';
+                          if (widget.application.day == 'Full Day') {
+                            dateRange = DateFormat("dd MMMM")
+                                    .format(widget.application.from) +
+                                " to " +
+                                DateFormat("dd MMMM yyyy")
+                                    .format(widget.application.to);
+                          } else {
+                            dateRange = DateFormat("dd MMMM yyyy")
+                                .format(widget.application.from);
+                          }
+                          if (isDirectorAprroved)
+                            twilioFlutter
+                                .sendSMS(toNumber: phoneNumber, messageBody: "Dear ${widget.application.name}\nWe regret to inform you that your leave application for ${widget.application.leaveType} on ${dateRange} has been successfully processed.\nThank You\nDirector");
+                        });
                         Fluttertoast.showToast(
                             msg: "Leave Application approved",
                             toastLength: Toast.LENGTH_SHORT,
@@ -306,9 +345,35 @@ class _LeaveDetailsState extends State<LeaveDetails> {
                     SizedBox(width: w * 0.1),
                     ElevatedButton(
                       onPressed: () async {
+                        String phoneNumber = '';
+                        await user_ref
+                            .doc(widget.application.uid)
+                            .get()
+                            .then((value) {
+                          phoneNumber = value.get('phoneNumber');
+                        });
                         await leave_form
                             .doc(widget.application.id)
-                            .update({"status": "declined"});
+                            .update({"status": "declined"}).then((value) {
+                          String dateRange = '';
+                          if (widget.application.day == 'Full Day') {
+                            dateRange = DateFormat("dd MMMM")
+                                    .format(widget.application.from) +
+                                " to " +
+                                DateFormat("dd MMMM yyyy")
+                                    .format(widget.application.to);
+                          } else {
+                            dateRange = DateFormat("dd MMMM yyyy")
+                                .format(widget.application.from);
+                          }
+                          if (widget.route == "directorApproval" ||
+                              widget.route == "director") {
+                            isDirectorAprroved = true;
+                          }
+                          if (isDirectorAprroved)
+                            twilioFlutter
+                                .sendSMS(toNumber: phoneNumber, messageBody: "Dear ${widget.application.name}\nWe regret to inform you that your leave application for ${widget.application.leaveType} on ${dateRange} has been rejected.\nThank You\nDirector");
+                        });
                         Fluttertoast.showToast(
                             msg: "Leave Application declined",
                             toastLength: Toast.LENGTH_SHORT,

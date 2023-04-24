@@ -33,7 +33,8 @@ class _LeaveFormState extends State<LeaveForm> {
     'On Duty',
     'Paternity Leave',
     'Privileage Leave',
-    'Sick Leave'
+    'Sick Leave',
+    'Earn leave'
   ];
   String? selected_leave_type = 'Casual Leave';
   String datefrom = "Please Select";
@@ -78,7 +79,7 @@ class _LeaveFormState extends State<LeaveForm> {
         DateFormat("EEEEE, dd MMMM yyyy").format(startDate).toString();
     String end = DateFormat("EEEEE, dd MMMM yyyy").format(endDate).toString();
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Leave Form'),
         centerTitle: true,
@@ -204,10 +205,8 @@ class _LeaveFormState extends State<LeaveForm> {
                               onTap: () async {
                                 DateTime? pickedDate = await showDatePicker(
                                     context: context,
-                                    initialDate: DateTime.now()
-                                        .add(const Duration(days: 5)),
-                                    firstDate: DateTime.now()
-                                        .add(const Duration(days: 5)),
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime.now(),
                                     lastDate: DateTime(2050));
 
                                 if (pickedDate != null) {
@@ -249,10 +248,8 @@ class _LeaveFormState extends State<LeaveForm> {
                           onTap: () async {
                             DateTime? pickedDate = await showDatePicker(
                                 context: context,
-                                initialDate:
-                                    DateTime.now().add(const Duration(days: 5)),
-                                firstDate:
-                                    DateTime.now().add(const Duration(days: 5)),
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime.now(),
                                 lastDate: DateTime(2100));
 
                             if (pickedDate != null) {
@@ -338,7 +335,7 @@ class _LeaveFormState extends State<LeaveForm> {
               const Padding(
                 padding: EdgeInsets.only(left: 20),
                 child: Text(
-                  "Approver:",
+                  "HOD:",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
@@ -384,25 +381,28 @@ class _LeaveFormState extends State<LeaveForm> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.black, width: 1),
                   ),
-                  child: TextFormField(
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Please provide reason';
-                        }
-                        return null;
-                      },
-                      controller: _reason,
-                      maxLines: 8,
-                      decoration: const InputDecoration(
-                        hintText: "Write a Reason",
-                        border: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        errorBorder: InputBorder.none,
-                        disabledBorder: InputBorder.none,
-                      ),
-                      style:
-                          const TextStyle(fontSize: 20, color: Colors.black)))
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextFormField(
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please provide reason';
+                          }
+                          return null;
+                        },
+                        controller: _reason,
+                        maxLines: 8,
+                        decoration: const InputDecoration(
+                          hintText: "Write a Reason",
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                        ),
+                        style:
+                            const TextStyle(fontSize: 20, color: Colors.black)),
+                  ))
             ]),
             Padding(
               padding: const EdgeInsets.only(top: 10),
@@ -431,6 +431,7 @@ class _LeaveFormState extends State<LeaveForm> {
                       "leave_type": selected_leave_type,
                       "uid": user!.uid.toString(),
                       "status": "pending",
+                      "approved_by_admin": "false",
                       "teamLead": teamLeadUID
                     }).then((_) {
                       Fluttertoast.showToast(

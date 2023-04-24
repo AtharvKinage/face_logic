@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:face_logic/main.dart';
 import 'package:face_logic/screens/home_screen.dart';
 import 'package:face_logic/screens/login_screen.dart';
+import 'package:face_logic/utils/fire_auth.dart';
 import 'package:face_logic/utils/uitls.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +13,8 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'forgot_password.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);
@@ -39,18 +43,19 @@ class _SignInScreenState extends State<SignInScreen> {
     double blockSizeHorizontal = screenWidth / 100;
     double blockSizeVertical = screenHeight / 100;
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
-        physics: NeverScrollableScrollPhysics(),
         child: Stack(
           children: [
             Container(
-              padding: EdgeInsets.symmetric(vertical: 110, horizontal: 30),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 110, horizontal: 30),
               color: Colors.white,
               width: double.infinity,
               child: Center(
                 child: Column(
                   children: [
-                    Padding(padding: EdgeInsets.only()),
+                    const Padding(padding: EdgeInsets.only()),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.max,
@@ -59,7 +64,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           "FaceLogic",
                           style: GoogleFonts.poppins(
                             fontSize: 40,
-                            color: Color(0xff205072),
+                            color: const Color(0xff205072),
                             fontWeight: FontWeight.w500,
                           ),
                         )
@@ -115,7 +120,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Widget _inputField1() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(
           Radius.circular(50),
         ),
@@ -128,7 +133,7 @@ class _SignInScreenState extends State<SignInScreen> {
           ),
         ],
       ),
-      margin: EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 20),
       child: TextFormField(
         controller: emailController,
         style: GoogleFonts.poppins(
@@ -136,7 +141,7 @@ class _SignInScreenState extends State<SignInScreen> {
             color: Colors.black,
             letterSpacing: 0.24,
             fontWeight: FontWeight.w500),
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           hintText: "Email address",
           hintStyle: TextStyle(
             color: Color(0xffA6B0BD),
@@ -163,17 +168,17 @@ class _SignInScreenState extends State<SignInScreen> {
             borderSide: BorderSide(color: Colors.white),
           ),
         ),
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        validator: (email) => email != null && !EmailValidator.validate(email)
-            ? 'Enter a valid email'
-            : null,
+        // autovalidateMode: AutovalidateMode.onUserInteraction,
+        // validator: (email) => email != null && !EmailValidator.validate(email)
+        //     ? 'Enter a valid email'
+        //     : null,
       ),
     );
   }
 
   Widget _inputField2() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(
           Radius.circular(50),
         ),
@@ -186,7 +191,7 @@ class _SignInScreenState extends State<SignInScreen> {
           ),
         ],
       ),
-      margin: EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 20),
       child: TextFormField(
         controller: passwordController,
         style: GoogleFonts.poppins(
@@ -194,7 +199,7 @@ class _SignInScreenState extends State<SignInScreen> {
             color: Colors.black,
             letterSpacing: 0.24,
             fontWeight: FontWeight.w500),
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           hintText: "Password",
           hintStyle: TextStyle(
             color: Color(0xffA6B0BD),
@@ -260,27 +265,27 @@ class _SignInScreenState extends State<SignInScreen> {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => LoginOTPPage()));
+            MaterialPageRoute(builder: (context) => const LoginOTPPage()));
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            "Dont't have account?",
-            style:
-                GoogleFonts.montserrat(fontSize: 20, color: Colors.greenAccent),
-          ),
+          // Text(
+          //   "Dont't have account?",
+          //   style:
+          //       GoogleFonts.montserrat(fontSize: 20, color: Colors.greenAccent),
+          // ),
           InkWell(
             child: Text(
-              " Signup",
+              " Forgot Password?",
               style: GoogleFonts.montserrat(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            onTap: () {
-              Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => LoginOTPPage()));
+            onTap: () async {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                  builder: (context) => const ForgotPassword()));
             },
           )
         ],
@@ -292,11 +297,45 @@ class _SignInScreenState extends State<SignInScreen> {
     showDialog(
         context: context,
         barrierDismissible: false,
-        builder: ((context) => Center(child: CircularProgressIndicator())));
+        builder: ((context) =>
+            const Center(child: CircularProgressIndicator())));
+    Query query;
+    String email = "";
     try {
+      if (!EmailValidator.validate(emailController.text)) {
+        query = FirebaseFirestore.instance
+            .collection("users")
+            .where('phoneNumber', isEqualTo: "+91${emailController.text}");
+        final snapshot = await query.get();
+        if (snapshot.docs.length > 0) {
+          email = snapshot.docs.first.get("email");
+        } else {
+          query = FirebaseFirestore.instance
+              .collection("admins")
+              .where('phoneNumber', isEqualTo: "+91${emailController.text}");
+          final snapshot = await query.get();
+          if (snapshot.docs.length > 0) {
+            email = snapshot.docs.first.get("email");
+          } else {
+            query = FirebaseFirestore.instance
+                .collection("director")
+                .where('phoneNumber', isEqualTo: "+91${emailController.text}");
+            final snapshot = await query.get();
+            if (snapshot.docs.length > 0) {
+              email = snapshot.docs.first.get("email");
+            } else {
+              showSnackBar(
+                  context, "Email/Phone Number and password don't match");
+              // Navigator.of(context).pop();
+            }
+          }
+        }
+      } else {
+        email = emailController.text;
+      }
+
       final user = await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: emailController.text.trim(),
-          password: passwordController.text.trim());
+          email: email, password: passwordController.text.trim());
       if (user != null) {
         // final prefs = await SharedPreferences.getInstance();
         // prefs.setString('email', emailController.text.trim());
@@ -305,7 +344,7 @@ class _SignInScreenState extends State<SignInScreen> {
       }
     } on FirebaseAuthException catch (e) {
       print(e);
-      showSnackBar(context, "Email and password don't match");
+      showSnackBar(context, "Email/Phone Number and password don't match");
       Navigator.of(context).pop();
     }
   }

@@ -1,3 +1,4 @@
+import 'package:face_logic/screens/my_leaves.dart';
 import 'package:face_logic/screens/form_screen.dart';
 import 'package:face_logic/screens/home_screen.dart';
 import 'package:face_logic/screens/profile_screen.dart';
@@ -42,6 +43,18 @@ class AppDrawer extends StatelessWidget {
                       )));
             },
           ),
+          if (isAdmin != "Director") Divider(),
+          if (isAdmin != "Director")
+            ListTile(
+              leading: Icon(Icons.history),
+              title: Text('My Leaves'),
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => MyLeave(
+                          isAdmin: isAdmin,
+                        )));
+              },
+            ),
           Divider(),
           ListTile(
             leading: const Icon(Icons.logout_rounded),

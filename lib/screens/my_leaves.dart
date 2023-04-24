@@ -1,49 +1,36 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:face_logic/constants.dart';
-import 'package:face_logic/screens/leave_details.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 
 import '../models/leaveApplicationModel.dart';
+import 'leave_details.dart';
 
-class LeaveApplicationHistory extends StatefulWidget {
-  String? route;
-  LeaveApplicationHistory({Key? key, this.route}) : super(key: key);
+class MyLeave extends StatefulWidget {
+  final String isAdmin;
+  const MyLeave({Key? key, required this.isAdmin}) : super(key: key);
 
   @override
-  State<LeaveApplicationHistory> createState() =>
-      _LeaveApplicationHistoryState();
+  State<MyLeave> createState() => _MyLeaveState();
 }
 
-class _LeaveApplicationHistoryState extends State<LeaveApplicationHistory> {
+class _MyLeaveState extends State<MyLeave> {
   List<LeaveModel> leaveApplications = [];
-  List<LeaveModel> empleaveApplications = [];
-  final User? user = FirebaseAuth.instance.currentUser;
+  final User user = FirebaseAuth.instance.currentUser!;
   bool isLoading = true;
   getleaveApplications() async {
-    final query1, query2;
-    if (widget.route == "director") {
+    final query1;
+    if (widget.isAdmin == "true") {
       query1 = FirebaseFirestore.instance
           .collection("leave_applications_admins")
-          .where("status", isNotEqualTo: "pending");
-      query2 = FirebaseFirestore.instance
-          .collection("leave_applications")
-          .where("status", isNotEqualTo: "pending");
-
-      empleaveApplications = await query2.get().then((value) => value.docs
-          .map<LeaveModel>(
-            (e) => LeaveModel.fromDocumentSnapshot(e),
-          )
-          .toList());
+          .where("uid", isEqualTo: user.uid);
     } else {
       query1 = FirebaseFirestore.instance
           .collection("leave_applications")
-          .where("teamLead", isEqualTo: user!.uid.toString())
-          .where("status", isNotEqualTo: "pending");
+          .where("uid", isEqualTo: user.uid);
     }
 
     leaveApplications = await query1.get().then((value) => value.docs
@@ -51,8 +38,9 @@ class _LeaveApplicationHistoryState extends State<LeaveApplicationHistory> {
           (e) => LeaveModel.fromDocumentSnapshot(e),
         )
         .toList());
-    leaveApplications.addAll(empleaveApplications);
+
     isLoading = false;
+
     setState(() {});
   }
 
@@ -64,20 +52,20 @@ class _LeaveApplicationHistoryState extends State<LeaveApplicationHistory> {
 
   @override
   Widget build(BuildContext context) {
-    double h = MediaQuery.of(context).size.height;
-    double w = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
           elevation: 10,
           backgroundColor: kPrimaryColor,
-          title: Text("Applications history")
+          title: Text("My Leaves")
           // leading: IconButton(
           //   icon: SvgPicture.asset("assets/icons/menu.svg"),
           //   onPressed: () {},
           // ),
           ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
           : ListView.builder(
               cacheExtent: 0.5,
               scrollDirection: Axis.vertical,
@@ -104,7 +92,7 @@ class _LeaveApplicationHistoryState extends State<LeaveApplicationHistory> {
                     },
                     subtitle: leaveApplications[index].day == "Full Day"
                         ? Text(
-                            "${leaveApplications[index].to.difference(leaveApplications[index].from).inDays+1} days")
+                            "${leaveApplications[index].to.difference(leaveApplications[index].from).inDays + 1} days")
                         : const Text('Half Day'),
                     trailing: Text(leaveApplications[index].status),
                   ),

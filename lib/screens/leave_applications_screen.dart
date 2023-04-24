@@ -29,7 +29,10 @@ class _ApplicationsState extends State<Applications> {
           .collection("leave_applications_admins")
           .where("status", isEqualTo: "pending");
     } else if (widget.route == "all") {
-      query1 = FirebaseFirestore.instance.collection("leave_applications");
+      query1 = FirebaseFirestore.instance
+          .collection("leave_applications")
+          .where("status", isEqualTo: "pending");
+      ;
     } else {
       query1 = FirebaseFirestore.instance
           .collection("leave_applications")
@@ -72,6 +75,9 @@ class _ApplicationsState extends State<Applications> {
           itemCount: leaveApplications.length,
           itemBuilder: ((context, index) {
             return Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15.0),
+              ),
               color: leaveApplications[index].status == "pending"
                   ? Colors.yellow
                   : leaveApplications[index].status == "approved"
@@ -102,7 +108,7 @@ class _ApplicationsState extends State<Applications> {
                 },
                 subtitle: leaveApplications[index].day == "Full Day"
                     ? Text(
-                        "${leaveApplications[index].to.difference(leaveApplications[index].from).inDays} days")
+                        "${leaveApplications[index].to.difference(leaveApplications[index].from).inDays + 1} days")
                     : const Text('Half Day'),
                 trailing: Text(leaveApplications[index].status),
               ),

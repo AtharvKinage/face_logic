@@ -54,6 +54,9 @@ class _TeamMembersListState extends State<TeamMembersList> {
           itemCount: members.length,
           itemBuilder: ((context, index) {
             return Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15.0),
+              ),
               margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
               elevation: 5,
               child: ListTile(

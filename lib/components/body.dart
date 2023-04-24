@@ -11,7 +11,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-
 final FirebaseAuth auth = FirebaseAuth.instance;
 // final User? user = auth.currentUser;
 // final uid = user?.uid;
@@ -67,9 +66,16 @@ class _HeaderState extends State<Header> {
             height: h * 0.075,
           ),
           Image.asset(
-            'assets/images/cognizant.webp',
+            'assets/images/logo.png',
             height: h * 0.1,
           ),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            "Arts, Commerce & Science College, Rahuri",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          )
         ],
       ),
       // child: Stack(

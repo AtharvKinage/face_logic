@@ -29,6 +29,7 @@ class _AdminHomeState extends State<AdminHome> {
   List<String> teamMembers = [];
   List<UserModel> members = [];
   List<LeaveModel> leaveApplications = [];
+  bool isLoading = true;
 
   void getTeamMember() async {
     final Query query = FirebaseFirestore.instance
@@ -43,7 +44,7 @@ class _AdminHomeState extends State<AdminHome> {
     final Query query1 = FirebaseFirestore.instance
         .collection("leave_applications")
         .where("teamLead", isEqualTo: user!.uid.toString())
-        .where("status", isEqualTo: "pending")
+        .where("approved_by_admin", isEqualTo: "false")
         .limit(3);
     leaveApplications = await query1.get().then((value) => value.docs
         .map<LeaveModel>(
@@ -57,7 +58,9 @@ class _AdminHomeState extends State<AdminHome> {
         )
         .toList());
 
-    setState(() {});
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -80,60 +83,81 @@ class _AdminHomeState extends State<AdminHome> {
               children: [
                 const Padding(
                   padding: EdgeInsets.all(12.0),
-                  child: Text("Leave Applications"),
+                  child: Text("Leave Applications",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => Applications()));
+                        builder: (context) => const Applications()));
                   },
                   child: const Padding(
                     padding: EdgeInsets.all(12.0),
-                    child: Text("view more"),
+                    child: Text("view more",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 )
               ],
             ),
             Container(
               height: h * 0.3,
-              child: ListView.builder(
-                  cacheExtent: 0.5,
-                  scrollDirection: Axis.vertical,
-                  itemCount: leaveApplications.length,
-                  itemBuilder: ((context, index) {
-                    return Card(
-                      color:  leaveApplications[index].status == "pending"
-                          ? Colors.yellow
-                          : leaveApplications[index].status == "approved"
-                              ? Colors.green
-                              : Colors.red,
-                      margin:
-                          const EdgeInsets.only(top: 10, left: 10, right: 10),
-                      elevation: 5,
-                      child: ListTile(
-                        title: Text(leaveApplications[index].name),
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => LeaveDetails(
-                                  application: leaveApplications[index])));
-                        },
-                        subtitle: leaveApplications[index].day == "Full Day"
-                            ? Text(
-                                "${leaveApplications[index].to.difference(leaveApplications[index].from).inDays} days")
-                            : const Text('Half Day'),
-                        trailing: Text(leaveApplications[index].status),
-                      ),
-                    );
-                  })),
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : leaveApplications.isNotEmpty
+                      ? ListView.builder(
+                          cacheExtent: 0.5,
+                          scrollDirection: Axis.vertical,
+                          itemCount: leaveApplications.length,
+                          itemBuilder: ((context, index) {
+                            return Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15.0),
+                              ),
+                              color:
+                                  leaveApplications[index].status == "pending"
+                                      ? Colors.yellow
+                                      : leaveApplications[index].status ==
+                                              "approved"
+                                          ? Colors.green
+                                          : Colors.red,
+                              margin: const EdgeInsets.only(
+                                  top: 10, left: 10, right: 10),
+                              elevation: 5,
+                              child: ListTile(
+                                title: Text(leaveApplications[index].name),
+                                onTap: () {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => LeaveDetails(
+                                          application:
+                                              leaveApplications[index])));
+                                },
+                                subtitle: leaveApplications[index].day ==
+                                        "Full Day"
+                                    ? Text(
+                                        "${leaveApplications[index].to.difference(leaveApplications[index].from).inDays+1} days")
+                                    : const Text('Half Day'),
+                                trailing: Text(leaveApplications[index].status),
+                              ),
+                            );
+                          }))
+                      : const Center(
+                          child: Text("No Applications"),
+                        ),
             ),
             const SizedBox(
               height: 20,
             ),
-            _history(context),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: _history(context),
+            ),
             const SizedBox(
               height: 20,
             ),
-            _leave(context),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: _leave(context),
+            ),
             const SizedBox(
               height: 20,
             ),
@@ -142,16 +166,18 @@ class _AdminHomeState extends State<AdminHome> {
               children: [
                 const Padding(
                   padding: EdgeInsets.all(12.0),
-                  child: Text("Team Members"),
+                  child: Text("Team Members",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => TeamMembersList()));
+                        builder: (context) => const TeamMembersList()));
                   },
                   child: const Padding(
                     padding: EdgeInsets.all(12.0),
-                    child: Text("view more"),
+                    child: Text("view more",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 )
               ],
@@ -164,6 +190,9 @@ class _AdminHomeState extends State<AdminHome> {
                   itemCount: members.length,
                   itemBuilder: ((context, index) {
                     return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
                       margin:
                           const EdgeInsets.only(top: 10, left: 10, right: 10),
                       elevation: 5,
@@ -237,7 +266,7 @@ Widget _leave(context) {
             fontWeight: FontWeight.w600),
       ),
       onPressed: () {
-        Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => AdminLeaveApplication()));
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => const AdminLeaveApplication()));
       });
 }

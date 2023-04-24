@@ -33,7 +33,8 @@ class _AdminLeaveApplicationState extends State<AdminLeaveApplication> {
     'On Duty',
     'Paternity Leave',
     'Privileage Leave',
-    'Sick Leave'
+    'Sick Leave',
+    'Earn leave'
   ];
   String? selected_leave_type = 'Casual Leave';
   String datefrom = "Please Select";
@@ -338,7 +339,7 @@ class _AdminLeaveApplicationState extends State<AdminLeaveApplication> {
               const Padding(
                 padding: EdgeInsets.only(left: 20),
                 child: Text(
-                  "Approver:",
+                  "PRINCIPAL:",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
