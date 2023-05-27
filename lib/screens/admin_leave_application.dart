@@ -163,9 +163,9 @@ class _AdminLeaveApplicationState extends State<AdminLeaveApplication> {
                                 DateTime? pickedDate = await showDatePicker(
                                     context: context,
                                     initialDate: DateTime.now()
-                                        .add(const Duration(days: 5)),
+                                     ,
                                     firstDate: DateTime.now()
-                                        .add(const Duration(days: 5)),
+                                      ,
                                     lastDate: DateTime(2100));
 
                                 if (pickedDate != null) {
@@ -206,9 +206,9 @@ class _AdminLeaveApplicationState extends State<AdminLeaveApplication> {
                                 DateTime? pickedDate = await showDatePicker(
                                     context: context,
                                     initialDate: DateTime.now()
-                                        .add(const Duration(days: 5)),
+                                        ,
                                     firstDate: DateTime.now()
-                                        .add(const Duration(days: 5)),
+                                      ,
                                     lastDate: DateTime(2050));
 
                                 if (pickedDate != null) {
@@ -251,9 +251,9 @@ class _AdminLeaveApplicationState extends State<AdminLeaveApplication> {
                             DateTime? pickedDate = await showDatePicker(
                                 context: context,
                                 initialDate:
-                                    DateTime.now().add(const Duration(days: 5)),
+                                    DateTime.now(),
                                 firstDate:
-                                    DateTime.now().add(const Duration(days: 5)),
+                                    DateTime.now(),
                                 lastDate: DateTime(2100));
 
                             if (pickedDate != null) {

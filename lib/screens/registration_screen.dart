@@ -22,7 +22,7 @@ class RegistrationPage extends StatefulWidget {
 
 class _RegistrationPageState extends State<RegistrationPage> {
   // DatabaseReference ref = FirebaseDatabase.instance.ref("users");
-  CollectionReference users = FirebaseFirestore.instance.collection('director');
+  CollectionReference users = FirebaseFirestore.instance.collection('users');
   // String empName = "";
   // String email = "";
   // String mobileNumber = "";

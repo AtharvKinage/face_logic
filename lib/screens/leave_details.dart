@@ -280,11 +280,19 @@ class _LeaveDetailsState extends State<LeaveDetails> {
                     ElevatedButton(
                       onPressed: () async {
                         String phoneNumber = '';
+                        String hodPhoneNumber='';
+                        
                         await user_ref
                             .doc(widget.application.uid)
                             .get()
                             .then((value) {
                           phoneNumber = value.get('phoneNumber');
+                          String hodUID = value.get('teamLead');
+                    
+                          FirebaseFirestore.instance.collection('admins').doc(hodUID).get().then((value) {
+                            hodPhoneNumber=value.get('phoneNumber');
+            
+                          });
                         });
                         String field = "approved_by_admin";
                         String value = "true";
@@ -309,10 +317,18 @@ class _LeaveDetailsState extends State<LeaveDetails> {
                             dateRange = DateFormat("dd MMMM yyyy")
                                 .format(widget.application.from);
                           }
-                          if (isDirectorAprroved)
-                            twilioFlutter
-                                .sendSMS(toNumber: phoneNumber, messageBody: "Dear ${widget.application.name}\nWe regret to inform you that your leave application for ${widget.application.leaveType} on ${dateRange} has been successfully processed.\nThank You\nDirector");
-                        });
+                          if (isDirectorAprroved){
+                            twilioFlutter.sendSMS(
+                                toNumber: phoneNumber,
+                                messageBody:
+                                    "Dear ${widget.application.name} your ${widget.application.leaveType} from ${dateRange} is approved");
+
+                                     twilioFlutter.sendSMS(
+                                toNumber: hodPhoneNumber,
+                                messageBody:
+                                    "Dear HOD, ${widget.application.leaveType} for ${widget.application.name} from ${dateRange} is approved");
+                       
+                       } });
                         Fluttertoast.showToast(
                             msg: "Leave Application approved",
                             toastLength: Toast.LENGTH_SHORT,
@@ -371,8 +387,10 @@ class _LeaveDetailsState extends State<LeaveDetails> {
                             isDirectorAprroved = true;
                           }
                           if (isDirectorAprroved)
-                            twilioFlutter
-                                .sendSMS(toNumber: phoneNumber, messageBody: "Dear ${widget.application.name}\nWe regret to inform you that your leave application for ${widget.application.leaveType} on ${dateRange} has been rejected.\nThank You\nDirector");
+                            twilioFlutter.sendSMS(
+                                toNumber: phoneNumber,
+                                messageBody:
+                                    "Dear ${widget.application.name}\nYour leave application for ${widget.application.leaveType} on ${dateRange} has been rejected.");
                         });
                         Fluttertoast.showToast(
                             msg: "Leave Application declined",
